@@ -1,0 +1,123 @@
+services:
+  frontend:
+    build:
+      context: frontend/
+    container_name: frontend
+    depends_on:
+      - backend
+      - sso
+    ports:
+      - "3000:3000"
+
+  backend:
+    build:
+      context: backend/
+    container_name: backend
+    environment:
+      POSTGRES__HOST: postgres
+      POSTGRES__PORT: 5432
+      POSTGRES__DB_NAME: zipinfo
+      POSTGRES__USERNAME: user
+      POSTGRES__PASSWORD: pass
+      OBJECT_STORAGE__HOST: minio
+      OBJECT_STORAGE__PORT: 9000
+      OBJECT_STORAGE__ACCESS_KEY_ID: user
+      OBJECT_STORAGE__SECRET_ACCESS_KEY: miniopass123
+      OBJECT_STORAGE__FILES_BUCKETNAME: files
+      SSO__SERVER: http://sso:8001
+      SSO__CLIENT_ID: zipinfo
+      SQ__SERVER: http://sq-dummy:8002
+    depends_on:
+      - postgres
+      - minio
+      - sso
+      - sq-dummy
+    ports:
+      - "8000:8000"
+
+  sso:
+    build:
+      context: sso/
+    container_name: sso
+    environment:
+      KEYCLOAK__SERVER_URL: http://keycloak:8080/
+      KEYCLOAK__REALM_NAME: myrealm
+      KEYCLOAK__USERNAME: admin
+      KEYCLOAK__PASSWORD: admin
+      REDIS__HOST: localhost
+      REDIS__PORT: 6379
+      REDIS__USERNAME: default
+      REDIS__PASSWORD: pass
+      REDIS__DB: 0
+    depends_on:
+      - keycloak
+      - redis
+    ports:
+      - "8001:8001"
+
+  sq-dummy:
+    build:
+      context: sq-dummy/
+    container_name: sq-dummy
+    ports:
+      - "8002:8002"
+
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_DB: zipinfo
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - ~/postgres/data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - ~/redis/data:/data
+    command: [ "redis-server", "--appendonly", "yes" ]
+
+  keycloak:
+    image: keycloak/keycloak:latest
+    container_name: keycloak
+    command: start-dev --import-realm
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/zipinfo
+      KC_DB_USERNAME: user
+      KC_DB_PASSWORD: pass
+      KC_REALM_NAME: myrealm
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: user
+      MINIO_ROOT_PASSWORD: miniopass123
+    volumes:
+      - ~/minio/data:/data
+    command: server /data --console-address ":9001"
+
+  createbuckets:
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c " sleep 5; /usr/bin/mc alias set dockerminio http://minio:9000 user miniopass123; /usr/bin/mc mb dockerminio/files; exit 0; "

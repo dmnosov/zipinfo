@@ -1,0 +1,35 @@
+{
+  "realm": "myrealm",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "zipinfo",
+      "enabled": true,
+      "publicClient": true,
+      "redirectUris": ["*"],
+      "directAccessGrantsEnabled": true,
+      "protocol": "openid-connect",
+      "standardFlowEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "test",
+      "enabled": true,
+      "emailVerified": true,
+      "email": "test@example.com",
+      "firstName": "Ivan",
+      "lastName": "Ivanov",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "test",
+          "temporary": false
+        }
+      ],
+      "requiredActions": [],
+      "createdTimestamp": 1712841215347
+    }
+  ]
+}
+
