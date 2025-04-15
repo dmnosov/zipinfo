@@ -26,7 +26,7 @@ docker compose up -d --build
 
 ## 📌 Основные ресурсы
 
-- **API**: [http://localhost:8000](http://localhost:8000)
+- **API**: [http://localhost:8000/docs (документация Swagger)](http://localhost:8000/docs)
 - **Веб-версия**: [http://localhost:3000](http://localhost:3000)
 
 ---
