@@ -15,6 +15,14 @@ router = APIRouter(prefix="/upload", tags=["Загрузки"])
 logger = logging.getLogger(__name__)
 
 
+allowed_mime_types = {
+    "application/zip",
+    "application/x-zip-compressed",
+    "multipart/x-zip",
+    "application/octet-stream",
+}
+
+
 @router.post(
     "",
     description="Отправка ZIP-архива на проверку",
@@ -27,7 +35,7 @@ async def upload_zip(
     user_id: UUID = Depends(JWTBearer()),
     file: UploadFile = File(description="ZIP архив для проверки"),
 ):
-    if file.headers.get("content-type") != "application/zip":
+    if file.headers.get("content-type") not in allowed_mime_types:
         return JSONResponse(
             content=Message(error="Uploaded file should be zip").model_dump(),
             status_code=400,
