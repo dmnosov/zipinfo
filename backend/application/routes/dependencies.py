@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 
 import jwt
@@ -5,6 +6,8 @@ from fastapi import HTTPException, Request
 from fastapi.security import HTTPBearer
 
 from infrastructure.adapters import sso_adapter
+
+logger = logging.getLogger(__name__)
 
 
 class JWTBearer(HTTPBearer):
@@ -26,6 +29,7 @@ class JWTBearer(HTTPBearer):
                 )
                 return UUID(payload["sub"])
             except jwt.InvalidTokenError:
+                logger.info("Неудачная попытка авторизации. Неверный токен")
                 raise HTTPException(status_code=403)
         else:
             raise HTTPException(status_code=403)

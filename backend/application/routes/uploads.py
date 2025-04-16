@@ -12,6 +12,8 @@ from domain.services import ReportService
 
 router = APIRouter(prefix="/upload", tags=["Загрузки"])
 
+logger = logging.getLogger(__name__)
+
 
 @router.post(
     "",
@@ -35,6 +37,7 @@ async def upload_zip(
     task_id = uuid4()
     await ReportService.create(task_id)
 
+    logger.info(f"Создание задачи анализа архива. task_id={task_id}")
     background_tasks.add_task(
         process_archive,
         task_id=task_id,

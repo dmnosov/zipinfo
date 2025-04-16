@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 from uuid import UUID
 
@@ -11,6 +12,8 @@ from domain.services.report_service import ReportService
 
 router = APIRouter(prefix="/report", tags=["Результат"])
 
+logger = logging.getLogger(__name__)
+
 
 @router.get(
     "/{id}",
@@ -23,10 +26,12 @@ router = APIRouter(prefix="/report", tags=["Результат"])
 async def get_result(id: Annotated[UUID, Path(title="ID задачи")]):
     result = await ReportService.find(id)
     if result is None:
+        logger.info(f"Неудачная попытка получения результата. Задача не найдена; task_id={id}")
         return JSONResponse(
             content=Message(error="Задача не найдена"),
             status_code=404,
         )
+    logger.info(f"Задача найдена. task_id={id}")
     return JSONResponse(
         content=jsonable_encoder(
             GetResultByIdResponse(
