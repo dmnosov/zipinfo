@@ -15,7 +15,7 @@ export default function Home() {
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
-    if (token !== null) {
+    if (token === null) {
       router.push("/login", { scroll: false });
     }
   }, []);
@@ -35,6 +35,7 @@ export default function Home() {
 
             if (json?.status === "SUCCESS") {
               clearInterval(intervalId);
+              setLoading(false);
             }
           })
           .catch((error) => console.log(error));
