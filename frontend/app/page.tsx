@@ -1,14 +1,24 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useRef, useState } from "react";
 
 export default function Home() {
+  const router = useRouter();
+
   const [loading, setLoading] = useState(false);
   const [task, setTask] = useState("");
 
   const [result, setResult] = useState("");
 
   const fileInput = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    if (token !== null) {
+      router.push("/login", { scroll: false });
+    }
+  }, []);
 
   useEffect(() => {
     if (task !== "") {
@@ -22,7 +32,10 @@ export default function Home() {
           .then((response) => response.json())
           .then((json) => {
             setResult(JSON.stringify(json));
-            setLoading(false);
+
+            if (json?.status === "SUCCESS") {
+              clearInterval(intervalId);
+            }
           })
           .catch((error) => console.log(error));
       }, 5000);
